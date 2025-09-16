@@ -129,7 +129,7 @@ function Get-DownloadUrlFromGit {
     $releaseInfo = $script:CachedGitReleaseInfo
 
     # Determine version from first mpv asset
-    $version = Get-LatestVersionStringFromGit
+    $version = Get-LatestCommitHashFromGit
 
     # Prepare mpv asset table
     $mpvAssets = @{}
