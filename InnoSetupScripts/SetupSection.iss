@@ -1,6 +1,6 @@
 AppVersion={#APP_VERSION}
 OutputDir={#OUTPUT_DIR}
-OutputBaseFilename="mpv-setup-{#ARCHITECTURE}"
+OutputBaseFilename="mpv-setup-{#ARCHITECTURE}-{#APP_VERSION}"
 
 #if ARCHITECTURE == "x86_64"
   ArchitecturesAllowed=x64compatible and not arm64
