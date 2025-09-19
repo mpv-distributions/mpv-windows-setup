@@ -91,6 +91,8 @@ function Test-BuildRequired {
     $LatestVersion = Get-LatestVersion -BuildType $BuildType
     $LatestBuildVersion = Get-LatestBuildVersion -BuildType $BuildType
 
+    Write-Host "Latest Github Version : $LatestVersion, Latest Version for which setup was built : $LatestBuildVersion"
+
     if(-not $LatestBuildVersion) {
         # This is the first build, there are no releases
         return $true
