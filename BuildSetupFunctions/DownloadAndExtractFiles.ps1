@@ -5,10 +5,10 @@ function DownloadExtract-Files {
     foreach ($arch in $script:Architectures) {
         $mpvExtractPath = Join-Path $downloadFolder $arch
 
-        if (-not $mpvAssets.MpvAssets.ContainsKey($arch)) {
+        if (-not $mpvAssets.ContainsKey($arch)) {
             throw "No MPV URL found for architecture: $arch"
         }
-        $mpvObj = $mpvAssets.MpvAssets[$arch]
+        $mpvObj = $mpvAssets[$arch]
         $mpvFile = Join-Path $downloadFolder $mpvObj.Filename
         Download-FileWithHash -Url $mpvObj.Url -FilePath $mpvFile -ExpectedHash $mpvObj.Hash -HashAlgo $mpvObj.HashAlgo
         Extract-File -FilePath $mpvFile -DestinationFolder $mpvExtractPath

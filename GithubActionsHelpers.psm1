@@ -48,7 +48,7 @@ function Get-LatestBuildVersion {
         }
         
         $latestMasterPrerelease = ($allReleases | Where-Object { $_.prerelease -eq $true }) | Select-Object -First 1
-        $commitHash = if ($latestMasterPrerelease.body -match 'MPV Commit\s*:\s*([0-9a-f]{7,40})') {
+        $commitHash = if ($latestMasterPrerelease.body -match 'MPV Version\s*:\s*([0-9a-f]{7,40})') {
             $matches[1]
         }
         return $commitHash
@@ -74,15 +74,12 @@ function Get-LatestCommitHashOrTagName {
 function Get-ReleaseNotesVersionString {
     param ([string] $BuildType)
 
-    $CommitHashOrTagName = Get-LatestCommitHashOrTagName -BuildType $BuildType
-
-    if ($BuildType -eq 'stable') {
-        return "MPV Version : $CommitHashOrTagName"
-    } elseif ($BuildType -eq 'master') {
-        return "MPV Commit : $CommitHashOrTagName"
-    } else {
+    if($BuildType -ne 'stable' || $BuildType -ne 'master') {
         throw "Unknown BuildType: $BuildType"
     }
+
+    $CommitHashOrTagName = Get-LatestCommitHashOrTagName -BuildType $BuildType
+    return "MPV Version : $CommitHashOrTagName"
 }
 
 function Test-BuildRequired {

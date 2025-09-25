@@ -39,6 +39,8 @@ function Get-LatestVersionStringFromSourceForge {
 }
 
 function Get-DownloadUrlFromSourceForge {
+    Write-Host "Get-DownloadUrlFromSourceForge : Fetching download urls"
+
     Get-SourceForgeReleaseInfo
     $releaseInfo = $script:CachedSourceForgeReleaseInfo
     $version = Get-LatestVersionStringFromSourceForge
@@ -53,7 +55,6 @@ function Get-DownloadUrlFromSourceForge {
         throw "No SourceForge assets found for version $version"
     }
 
-    # Prepare mpv asset table
     $mpvAssets = @{}
 
     foreach ($arch in $script:Architectures) {
@@ -66,24 +67,21 @@ function Get-DownloadUrlFromSourceForge {
         }
 
         $filename = "mpv-$version-$arch.7z"
-        $finalUrl = "https://download.sourceforge.net/mpv-player-windows/$filename"
+        $downloadUrl = "https://download.sourceforge.net/mpv-player-windows/$filename"
 
         $hashNode = $item.SelectSingleNode("media:content/media:hash", $nsmgr)
         $hashAlgo  = $hashNode.algo
         $hashValue = $hashNode.InnerText
 
         $mpvAssets[$arch] = [PSCustomObject]@{
-            Url      = $finalUrl
+            Url      = $downloadUrl
             Hash     = $hashValue
             HashAlgo = $hashAlgo
             Filename = $filename
         }
     }
 
-    return [PSCustomObject]@{
-        Version   = $version
-        MpvAssets = $mpvAssets
-    }
+    return $mpvAssets
 }
 
 function Get-GitReleaseInfo {
@@ -125,6 +123,8 @@ function Get-LatestCommitHashFromGit {
 }
 
 function Get-DownloadUrlFromGit {
+    Write-Host "Get-DownloadUrlFromGit : Fetching download urls"
+
     Get-GitReleaseInfo
     $releaseInfo = $script:CachedGitReleaseInfo
 
@@ -148,19 +148,16 @@ function Get-DownloadUrlFromGit {
         # Extract hash info
         $hashAlgo, $hashValue = $asset.digest -split ":", 2
 
-        $url = $asset.browser_download_url
+        $downloadUrl = $asset.browser_download_url
         $filename = "mpv-$version-$arch.7z"
 
         $mpvAssets[$arch] = [PSCustomObject]@{
-            Url      = $url
+            Url      = $downloadUrl
             Hash     = $hashValue
             HashAlgo = $hashAlgo
             Filename = $filename
         }
     }
 
-    return [PSCustomObject]@{
-        Version    = $version
-        MpvAssets    = $mpvAssets
-    }
+    return $mpvAssets
 }

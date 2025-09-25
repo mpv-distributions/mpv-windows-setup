@@ -32,10 +32,10 @@ $script:Headers["User-Agent"] = "Mpv-Setup-Builder"
 # Runtime Variables
 $script:BuildType = $BuildType
 $script:RepoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$script:PayloadsFolder  = Join-Path $RepoRoot "Payloads"
-$script:DownloadFolder  = Join-Path $RepoRoot "downloads"
-$script:ArtifactFolder  = Join-Path $RepoRoot "artifacts"
-$script:UtilsFolder  = Join-Path $RepoRoot "utils"
+$script:PayloadsFolder = Join-Path $RepoRoot "Payloads"
+$script:DownloadFolder = Join-Path $RepoRoot "downloads"
+$script:ArtifactFolder = Join-Path $RepoRoot "artifacts"
+$script:UtilsFolder = Join-Path $RepoRoot "utils"
 $script:InnoSetupScript = Join-Path $PSScriptRoot "InnoSetupScripts" "Setup.iss"
 
 $script:7z_command = $null
