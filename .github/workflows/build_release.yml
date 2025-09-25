@@ -7,7 +7,6 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  HELPERS_MODULE: ./GitHubActionsHelpers.psm1
 
 jobs:
   build_release:
@@ -21,25 +20,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check if build is required
+      - name: Check build required
         id: check_build
         shell: pwsh
         run: |
-          Import-Module $env:HELPERS_MODULE
+          Import-Module ./GitHubActionsHelpers.psm1
           if (Test-BuildRequired -BuildType ${{ matrix.build_type }}) {
             "build_required=true"  >> $env:GITHUB_OUTPUT
           } else {
             "build_required=false" >> $env:GITHUB_OUTPUT
           }
-
-      - name: Get version info
-        if: steps.check_build.outputs.build_required == 'true'
-        id: version
-        shell: pwsh
-        run: |
-          Import-Module $env:HELPERS_MODULE
-          "version=$(Get-LatestVersion -BuildType ${{ matrix.build_type }})" >> $env:GITHUB_OUTPUT
-          "ReleaseNoteVersionString=$(Get-ReleaseNotesVersionString -BuildType ${{ matrix.build_type }})" >> $env:GITHUB_OUTPUT
 
       - name: Build Installer
         if: steps.check_build.outputs.build_required == 'true'
@@ -48,6 +38,14 @@ jobs:
           ./BuildSetup.ps1 -BuildType ${{ matrix.build_type }}
         shell: pwsh
 
+      - name: Get mpv version
+        if: steps.build.outcome == 'success'
+        id: getmpvversion
+        shell: pwsh
+        run: |
+          . .\BuildSetup.ps1
+          "version=$(Get-MpvVersion)" >> $env:GITHUB_OUTPUT
+
       - name: Create Release
         if: steps.build.outcome == 'success'
         id: release
@@ -55,10 +53,10 @@ jobs:
         with:
           files: artifacts/*
           preserve_order: true
-          tag_name: ${{ steps.version.outputs.version }}
-          name: "${{ steps.version.outputs.version }}"
+          tag_name: ${{ steps.getmpvversion.outputs.version }}
+          name: ${{ steps.getmpvversion.outputs.version }}
           prerelease: ${{ matrix.build_type == 'master' }}
-          body: "${{ steps.version.outputs.ReleaseNoteVersionString }}"
+          body: "MPV Version : ${{ steps.getmpvversion.outputs.version }}"
 
   prune:
     needs: build_release

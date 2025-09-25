@@ -6,13 +6,12 @@
     Builds either master or stable version of the installer for all architectures.
 
 .PARAMETER BuildType
-    Mandatory. Either master or stable. 
+    Either master or stable. Defaults to master. 
 #>
 
 param(
-    [Parameter(Mandatory)]
     [ValidateSet("master", "stable")]
-    [string]$BuildType
+    [string]$BuildType = "master"
 )
 
 # Config Variables
@@ -72,4 +71,7 @@ function Main {
     Compile-InnoSetup
 }
 
-Main
+If ($MyInvocation.InvocationName -ne ".")
+{
+    Main
+}

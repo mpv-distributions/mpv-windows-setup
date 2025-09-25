@@ -21,65 +21,61 @@ function Get-LatestVersion {
     }
 }
 
-function Get-LatestBuildVersion {
-    param ([string] $BuildType)
+function Get-CommitHashFromGithubTag($tag) {
+    if ($tag -match '-g([0-9a-f]{7,40})$') {
+        # Sinchiro's build uses 7 characters for commit hash
+        return $matches[1].Substring(0, 7)
+    } else {
+        throw "No commit hash found in tag: $tag"
+    }
+}
 
-    if ($BuildType -eq 'stable') {
-        try {
-            $latestRelease = Invoke-RestMethod "https://api.github.com/repos/$RepositoryOrganization/$RepositoryName/releases/latest" -Headers $headers
-        } catch {
-            # Handle 404 "Not Found" case if no releases exist
-            if ($_.Exception.Response.StatusCode.value__ -eq 404) {
-                Write-Host "No releases found for $RepositoryOrganization/$RepositoryName ($BuildType). Maybe the repository doesn't exist either."
-                return $null
-            } else {
-                throw
+function Get-LatestBuildVersion {
+    param (
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('stable','master')]
+        [string] $BuildType
+    )
+
+    try {
+        switch ($BuildType) {
+            'stable' {
+                $latestRelease = Invoke-RestMethod "https://api.github.com/repos/$RepositoryOrganization/$RepositoryName/releases/latest" -Headers $headers
+                return $latestRelease.tag_name
+            }
+            'master' {
+                $allReleases = Invoke-RestMethod "https://api.github.com/repos/$RepositoryOrganization/$RepositoryName/releases" -Headers $headers
+
+                if (-not $allReleases) {
+                    Write-Host "No releases found for $RepositoryOrganization/$RepositoryName"
+                    return $null
+                }
+
+                $latestMasterPrerelease = $allReleases |
+                    Where-Object { $_.prerelease -eq $true } |
+                    Sort-Object -Property published_at -Descending |
+                    Select-Object -First 1
+
+                if (-not $latestMasterPrerelease) {
+                    Write-Host "No prereleases found for $RepositoryOrganization/$RepositoryName"
+                    return $null
+                }
+
+                return Get-CommitHashFromGithubTag $latestMasterPrerelease.tag_name
+            }
+            default {
+                throw "Invalid build type : $BuildType"
             }
         }
-        
-        return $latestRelease.tag_name
-    }
-    elseif ($BuildType -eq 'master') {
-        $allReleases = Invoke-RestMethod "https://api.github.com/repos/$RepositoryOrganization/$RepositoryName/releases" -Headers $headers
-        
-        if (-not $allReleases) {
-            Write-Host "No releases found for $RepositoryOrganization/$RepositoryName"
+    } catch {
+        # Handle 404 "Not Found" case if no releases exist
+        if ($_.Exception.Response.StatusCode.value__ -eq 404) {
+            Write-Host "No releases found for $RepositoryOrganization/$RepositoryName ($BuildType)."
             return $null
+        } else {
+            throw
         }
-        
-        $latestMasterPrerelease = ($allReleases | Where-Object { $_.prerelease -eq $true }) | Select-Object -First 1
-        $commitHash = if ($latestMasterPrerelease.body -match 'MPV Version\s*:\s*([0-9a-f]{7,40})') {
-            $matches[1]
-        }
-        return $commitHash
-    } else {
-        throw "Unknown BuildType: $BuildType"
     }
-}
-
-function Get-LatestCommitHashOrTagName {
-    param ([string] $BuildType)
-
-    if ($BuildType -eq 'master') {
-        # Use commit mpv hash if building for master
-        return Get-LatestCommitHashFromGit
-    } elseif ($BuildType -eq 'stable') {
-        # Use the tag if we are building stable build
-        return Get-LatestVersion -BuildType $BuildType
-    } else {
-        throw "Unknown BuildType: $BuildType"
-    }
-}
-
-function Get-ReleaseNotesVersionString {
-    param ([string] $BuildType)
-
-    if($BuildType -ne 'stable' || $BuildType -ne 'master') {
-        throw "Unknown BuildType: $BuildType"
-    }
-
-    $CommitHashOrTagName = Get-LatestCommitHashOrTagName -BuildType $BuildType
-    return "MPV Version : $CommitHashOrTagName"
 }
 
 function Test-BuildRequired {
@@ -88,7 +84,7 @@ function Test-BuildRequired {
     $LatestVersion = Get-LatestVersion -BuildType $BuildType
     $LatestBuildVersion = Get-LatestBuildVersion -BuildType $BuildType
 
-    Write-Host "Latest Github Version : $LatestVersion, Latest Version for which setup was built : $LatestBuildVersion"
+    Write-Host "Latest MPV Version : $LatestVersion, Latest Setup Version : $LatestBuildVersion"
 
     if(-not $LatestBuildVersion) {
         # This is the first build, there are no releases
@@ -102,4 +98,4 @@ function Test-BuildRequired {
     }
 }
 
-Export-ModuleMember -Function Get-LatestVersion, Test-BuildRequired, Get-ReleaseNotesVersionString, Get-LatestCommitHashOrTagName
+Export-ModuleMember -Function Test-BuildRequired

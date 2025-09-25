@@ -19,11 +19,11 @@ function Get-MpvVersion {
 
 function Compile-InnoSetup {
     Write-Host "Compiling Inno Setup for all architectures..."
+    $mpvVersion = Get-MpvVersion
+    Write-Host "MPV Version : $mpvVersion"
 
     foreach ($arch in $script:Architectures) {
         Write-Host "Building setup for $arch"
-        $mpvVersion = Get-MpvVersion
-        Write-Host "MPV Version : $mpvVersion"
 
         $cmdArgs = @(
             "/Q",
