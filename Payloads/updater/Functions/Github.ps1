@@ -15,10 +15,10 @@ function Get-LatestGithubRelease {
 
     switch ($updateChannel.ToLower()) {
         "stable" {
-            $latestReleaseInfo = $releases | Where-Object { -not $_.prerelease -and -not $_.draft } | Select-Object -First 1
+            $latestReleaseInfo = $releases | Where-Object { -not $_.prerelease -and -not $_.draft } | Sort-Object -Property published_at -Descending | Select-Object -First 1
         }
         "master" {
-            $latestReleaseInfo = $releases | Select-Object -First 1
+            $latestReleaseInfo = $releases | Sort-Object -Property published_at -Descending | Select-Object -First 1
         }
         default {
             Stop-Update $Errors.ERR_GITHUB_CHANNEL_UNKNOWN "Channel: $updateChannel"
