@@ -1,5 +1,5 @@
 $RepositoryOrganization = "mpv-distributions"
-$RepositoryName = "mpv-win-setup"
+$RepositoryName = "mpv-windows-setup"
 
 $headers = @{}
 if ($env:GITHUB_TOKEN) {

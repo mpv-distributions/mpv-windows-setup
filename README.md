@@ -1,6 +1,6 @@
 ## Downloads
-1. [Latest stable version (Recommended)](https://github.com/mpv-distributions/mpv-win-setup/releases/latest)
-2. [Latest master version](https://github.com/mpv-distributions/mpv-win-setup/releases)
+1. [Latest stable version (Recommended)](https://github.com/mpv-distributions/mpv-windows-setup/releases/latest)
+2. [Latest master version](https://github.com/mpv-distributions/mpv-windows-setup/releases)
 
 ## About
 This repository offers Windows installer for [mpv media player](https://mpv.io). The setup is built using precompiled binaries from [Shinchiro's mpv builds](https://github.com/shinchiro/mpv-winbuild-cmake). 

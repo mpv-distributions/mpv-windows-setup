@@ -1,6 +1,6 @@
 # DownloadDir folder will be deleted and recreated, so don't set it to something that is used by other programs
 $DownloadDirPath = Join-Path $env:TEMP "MPVUpdater"
-$GithubReleaseAPIEndpoint = "https://api.github.com/repos/mpv-distributions/mpv-win-setup/releases"
+$GithubReleaseAPIEndpoint = "https://api.github.com/repos/mpv-distributions/mpv-windows-setup/releases"
 $SetupParams = "/VERYSILENT /NORESTART"
 
 # Error Handler Logger
