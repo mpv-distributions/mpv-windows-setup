@@ -1,19 +1,34 @@
 function Get-MpvVersion {
-    $arch = $script:Architectures | Where-Object { $_ -ne "aarch64" } | Select-Object -First 1
-    $mpvPath = Join-Path $script:DownloadFolder $arch "mpv.com"
+    if ($script:Architectures -contains "x86_64") {
+        $arch = "x86_64"
+    } else {
+        throw "x86_64 architecture is not available."
+    }
+    
+    $mpvPath = Join-Path $script:DownloadFolder $arch "mpv.exe"
 
     try {
-        $versionOutput = & $mpvPath --version 2>&1
+        # Use 'strings' to scrape the text out of the binary without executing it. Mpv fails to execute due to missing dlls.
+        $stringsPath = Join-Path $env:TEMP "strings64.exe"
+        if (-not (Test-Path $stringsPath)) {
+            Write-Host "Downloading Sysinternals strings64.exe..."
+            Invoke-WebRequest -Uri "https://live.sysinternals.com/strings64.exe" -OutFile $stringsPath
+        }
+        
+        Write-Host "Using external tool at: $stringsPath"
 
-        $firstLine = $versionOutput | Select-Object -First 1
-        if ($firstLine -match 'mpv\s+v([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9]+-g[0-9a-f]{7,40})?)') {
-            $mpvVersion = $matches[1]
+        # Execute Sysinternals strings (-AcceptEula and -nobanner are required for silent server runs)
+        $match = & $stringsPath -AcceptEula -nobanner $mpvPath | Select-String -Pattern 'mpv\s+v([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9]+-g[0-9a-f]{7,40})?)' | Select-Object -First 1
+        
+        if ($match) {
+            $mpvVersion = $match.Matches[0].Groups[1].Value
+            Write-Host "Successfully extracted MPV Version: $mpvVersion"
             return $mpvVersion
         } else {
-            throw "Failed to parse MPV version from: $firstLine"
+            throw "Failed to find version string in binary using Sysinternals strings."
         }
     } catch {
-        throw "Failed to get mpv version info. Failed to run mpv at path '$mpvPath': $_"
+        throw "Failed to extract mpv version info: $_"
     }
 }
 
