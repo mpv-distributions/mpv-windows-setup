@@ -1,19 +1,28 @@
 function Get-MpvVersion {
-    $arch = $script:Architectures | Where-Object { $_ -ne "aarch64" } | Select-Object -First 1
+    if ($script:Architectures -contains "x86_64") {
+        $arch = "x86_64"
+    } else {
+        throw "x86_64 architecture is not available."
+    }
+    
     $mpvPath = Join-Path $script:DownloadFolder $arch "mpv.com"
 
     try {
         $versionOutput = & $mpvPath --version 2>&1
+        $exitCode = $LASTEXITCODE
+        
+        Write-Host "Exit Code: $exitCode"
+        Write-Host "Raw Output: $versionOutput"
 
         $firstLine = $versionOutput | Select-Object -First 1
         if ($firstLine -match 'mpv\s+v([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9]+-g[0-9a-f]{7,40})?)') {
             $mpvVersion = $matches[1]
             return $mpvVersion
         } else {
-            throw "Failed to parse MPV version from: $firstLine"
+            throw "Failed to parse MPV version. Exit code: $exitCode. Output: $versionOutput"
         }
     } catch {
-        throw "Failed to get mpv version info. Failed to run mpv at path '$mpvPath': $_"
+        throw "Failed to get mpv version info: $_"
     }
 }
 
